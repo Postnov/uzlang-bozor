@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Узбекский для базара</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body class="bg-gray-100">
+    <div id="app">
+        <cookie-notice v-if="showCookieNotice" @close="closeCookieNotice"></cookie-notice>
+        <app-header v-model:current-mode="currentMode" @start-practice="startNewPractice"></app-header>
+
+        <div class="container mx-auto px-4 content-area">
+            <theory-mode v-if="currentMode === 'theory'" :theory="theory"></theory-mode>
+            <list-mode v-if="currentMode === 'list'" :words="words" :numbers="numbers"></list-mode>
+            <learn-mode v-if="currentMode === 'learn'" :words="words" :numbers="numbers" @start-practice="startNewPractice"></learn-mode>
+            <practice-mode v-if="currentMode === 'practice'" :words="words" :numbers="numbers"></practice-mode>
+            <developer-info></developer-info>
+        </div>
+
+        <mobile-nav v-model:current-mode="currentMode" @start-practice="startNewPractice"></mobile-nav>
+    </div>
+
+    <script type="module">
+        import CookieNotice from './components/CookieNotice.js'
+        import AppHeader from './components/Header.js'
+        import TheoryMode from './components/Theory.js'
+        import ListMode from './components/List.js'
+        import LearnMode from './components/Learn.js'
+        import PracticeMode from './components/Practice.js'
+        import DeveloperInfo from './components/DeveloperInfo.js'
+        import MobileNav from './components/MobileNav.js'
+
+        const { createApp } = Vue;
+
+        createApp({
+            components: {
+                CookieNotice,
+                AppHeader,
+                TheoryMode,
+                ListMode,
+                LearnMode,
+                PracticeMode,
+                DeveloperInfo,
+                MobileNav
+            },
+            data() {
+                return {
+                    showCookieNotice: true,
+                    currentMode: 'theory',
+                    currentTab: 'words',
+                    words: [],
+                    numbers: [],
+                    theory: {},
+                }
+            },
+            methods: {
+                async loadData() {
+                    try {
+                        const response = await fetch('./data/data.json');
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        this.words = data.words;
+                        this.numbers = data.numbers;
+                        this.theory = data.theory;
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                        alert('Ошибка загрузки данных. Пожалуйста, обновите страницу.');
+                    }
+                },
+                closeCookieNotice() {
+                    this.showCookieNotice = false;
+                    Cookies.set('cookieNoticeShown', 'true', { expires: 365 });
+                },
+                startNewPractice() {
+                    this.currentMode = 'practice';
+                }
+            },
+            async mounted() {
+                await this.loadData();
+                const cookieNoticeShown = Cookies.get('cookieNoticeShown');
+                this.showCookieNotice = !cookieNoticeShown;
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
