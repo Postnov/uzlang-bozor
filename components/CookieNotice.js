@@ -3,9 +3,10 @@ export default {
         <div v-if="showCookieNotice" class="cookie-notice">
             <div class="text-amber-500 text-xl">⚠️</div>
             <div class="flex-grow">
-                <div class="text-gray-800 font-medium mb-1">Использование куки</div>
+                <div class="text-gray-800 font-medium mb-1">Прогресс хранится в куки</div>
                 <div class="text-gray-600 text-sm">
-                    Мы используем куки для улучшения работы приложения.
+                    Приложение хранит прогресс изучения слов в куки браузера.
+                    При очистке куки весь прогресс будет сброшен.
                 </div>
                 <button @click="closeCookieNotice"
                     class="mt-2 px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all w-full">

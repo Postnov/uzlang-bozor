@@ -18,9 +18,20 @@
 
         <div class="container mx-auto px-4 content-area">
             <theory-mode v-if="currentMode === 'theory'" :theory="theory"></theory-mode>
-            <list-mode v-if="currentMode === 'list'" :words="words" :numbers="numbers"></list-mode>
-            <learn-mode v-if="currentMode === 'learn'" :words="words" :numbers="numbers" @start-practice="startNewPractice"></learn-mode>
-            <practice-mode v-if="currentMode === 'practice'" :words="words" :numbers="numbers"></practice-mode>
+            <list-mode v-if="currentMode === 'list'" 
+                :words="words" 
+                :numbers="numbers"
+                :word-progress="wordProgress"
+                :number-progress="numberProgress"></list-mode>
+            <learn-mode v-if="currentMode === 'learn'" 
+                :words="words" 
+                :numbers="numbers" 
+                @start-practice="startNewPractice"></learn-mode>
+            <practice-mode v-if="currentMode === 'practice'" 
+                :words="words" 
+                :numbers="numbers"
+                @correct-answer="updateProgress"
+                @wrong-answer="updateProgress"></practice-mode>
             <developer-info></developer-info>
         </div>
 
@@ -58,6 +69,8 @@
                     words: [],
                     numbers: [],
                     theory: {},
+                    wordProgress: {},
+                    numberProgress: {}
                 }
             },
             methods: {
@@ -76,6 +89,39 @@
                         alert('Ошибка загрузки данных. Пожалуйста, обновите страницу.');
                     }
                 },
+                updateProgress(question) {
+                    const progress = question.type === 'word' ? this.wordProgress : this.numberProgress;
+                    const id = question.id;
+                    
+                    if (!progress[id]) {
+                        progress[id] = {
+                            total: 0,
+                            correct: 0
+                        };
+                    }
+                    
+                    progress[id].total++;
+                    if (question.isCorrect) {
+                        progress[id].correct++;
+                    }
+                    
+                    this.saveProgress();
+                },
+                saveProgress() {
+                    Cookies.set('wordProgress', JSON.stringify(this.wordProgress), { expires: 365 });
+                    Cookies.set('numberProgress', JSON.stringify(this.numberProgress), { expires: 365 });
+                },
+                loadProgress() {
+                    const savedWordProgress = Cookies.get('wordProgress');
+                    const savedNumberProgress = Cookies.get('numberProgress');
+                    
+                    if (savedWordProgress) {
+                        this.wordProgress = JSON.parse(savedWordProgress);
+                    }
+                    if (savedNumberProgress) {
+                        this.numberProgress = JSON.parse(savedNumberProgress);
+                    }
+                },
                 closeCookieNotice() {
                     this.showCookieNotice = false;
                     Cookies.set('cookieNoticeShown', 'true', { expires: 365 });
@@ -86,6 +132,7 @@
             },
             async mounted() {
                 await this.loadData();
+                this.loadProgress();
                 const cookieNoticeShown = Cookies.get('cookieNoticeShown');
                 this.showCookieNotice = !cookieNoticeShown;
             }

@@ -91,9 +91,11 @@ export default {
             if (this.isCorrect) {
                 this.correctAnswers++;
                 currentItem.isCorrect = true;
+                this.$emit('correct-answer', { ...this.currentQuestion, isCorrect: true });
             } else {
                 this.wrongAnswers++;
                 currentItem.isCorrect = false;
+                this.$emit('wrong-answer', { ...this.currentQuestion, isCorrect: false });
             }
 
             this.questionsAnswered++;

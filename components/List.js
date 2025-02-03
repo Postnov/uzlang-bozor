@@ -11,6 +11,14 @@ export default {
         numbers: {
             type: Array,
             required: true
+        },
+        wordProgress: {
+            type: Object,
+            required: true
+        },
+        numberProgress: {
+            type: Object,
+            required: true
         }
     },
     data() {
@@ -107,6 +115,29 @@ export default {
             return groups.filter(group => group.numbers.length > 0);
         }
     },
+    methods: {
+        getProgressPercent(item) {
+            const progress = this.currentTab === 'words' ? this.wordProgress : this.numberProgress;
+            const itemId = this.currentTab === 'words' ? item.id : item.number;
+            
+            if (!progress[itemId]) {
+                return 0;
+            }
+            
+            const itemProgress = progress[itemId];
+            if (itemProgress.total === 0) {
+                return 0;
+            }
+            
+            return Math.round((itemProgress.correct / itemProgress.total) * 100);
+        },
+        getProgressColor(percent) {
+            if (percent >= 80) return 'bg-green-500';
+            if (percent >= 60) return 'bg-yellow-500';
+            if (percent >= 40) return 'bg-orange-500';
+            return 'bg-red-500';
+        }
+    },
     template: `
         <div class="w-full mx-auto flex-grow">
             <div class="bg-white p-8 rounded-lg shadow-md">
@@ -138,6 +169,18 @@ export default {
                                     <div class="text-blue-600">{{ word.translation }}</div>
                                     <div class="text-gray-500">({{ word.transcription }})</div>
                                 </div>
+                                <div class="mt-3">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-600">Прогресс:</span>
+                                        <span class="text-gray-600">{{ getProgressPercent(word) }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="h-2 rounded-full transition-all"
+                                            :class="getProgressColor(getProgressPercent(word))"
+                                            :style="{ width: getProgressPercent(word) + '%' }">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <AudioPlayer v-if="word.audio" :src="word.audio" />
                         </div>
@@ -161,6 +204,18 @@ export default {
                                         </div>
                                         <div v-if="number.formula" class="text-xs text-gray-600 mt-2 border-t border-gray-200 pt-2">
                                             {{ number.formula }}
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-gray-600">Прогресс:</span>
+                                                <span class="text-gray-600">{{ getProgressPercent(number) }}%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="h-2 rounded-full transition-all"
+                                                    :class="getProgressColor(getProgressPercent(number))"
+                                                    :style="{ width: getProgressPercent(number) + '%' }">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <AudioPlayer v-if="number.audio" :src="number.audio" />
